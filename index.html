@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿阮揪團購</title>
+    <!-- 引入 Google Fonts: Noto Sans TC 提供更有質感的繁體中文顯示 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- 引入 Tailwind CSS 快速構建現代化樣式 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9', // 主色調：清新的天藍
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        },
+                        accent: {
+                            light: '#fdba74',
+                            DEFAULT: '#f97316', // 強調色：質感橘 (用於價格)
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)', // 自定義柔和陰影
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 增加微細的背景噪點質感 */
+        body {
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.8) 0px, transparent 50%), 
+                radial-gradient(at 100% 0%, rgba(224, 242, 254, 0.4) 0px, transparent 50%);
+        }
+        
+        /* 自定義卡片懸浮動畫 */
+        .item-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+    </style>
+</head>
+<body class="text-slate-600 font-sans min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- 頁首區域 -->
+        <header class="text-center mb-10 mt-4 relative">
+            <div class="inline-block relative">
+                <h1 class="text-3xl sm:text-4xl font-bold text-slate-800 tracking-tight mb-2">
+                    阿阮揪團購
+                </h1>
+                <!-- 裝飾性下底線 -->
+                <div class="h-1 w-1/2 bg-brand-500 mx-auto rounded-full opacity-80"></div>
+            </div>
+            <p class="text-slate-400 mt-3 text-sm font-light tracking-wide">
+                精選好物・限時跟團・錯過不再
+            </p>
+        </header>
+
+        <!-- 列表容器 -->
+        <main class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-soft border border-white/50 overflow-hidden">
+            
+            <!-- 表頭 (僅在桌機版顯示) -->
+            <div class="hidden sm:grid grid-cols-12 gap-4 p-5 bg-slate-50/80 border-b border-slate-100 text-sm font-medium text-slate-500 uppercase tracking-wider">
+                <div class="col-span-6 pl-2">商品名稱</div>
+                <div class="col-span-3 text-right pr-4">價格</div>
+                <div class="col-span-3 text-center">收單日期</div>
+            </div>
+
+            <!-- 列表內容 (動態生成) -->
+            <div id="product-list" class="divide-y divide-slate-100">
+                <!-- JavaScript 將在此處插入內容 -->
+            </div>
+            
+<%--            <!-- 底部動作條 -->
+            <div class="p-4 bg-slate-50 border-t border-slate-100 text-center sm:text-right">
+                 <button class="w-full sm:w-auto bg-brand-600 hover:bg-brand-500 text-white font-medium py-2 px-6 rounded-lg transition-colors shadow-sm active:scale-95 duration-150">
+                    聯絡團主
+                </button>
+            </div>--%>
+        </main>
+
+        <footer class="text-center mt-12 text-slate-400 text-xs">
+            © 2025 阿阮揪團購. All rights reserved.
+        </footer>
+
+
+        <!-- 引入數據與生成腳本 -->
+        <script src="JavaScript.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const listContainer = document.getElementById('product-list');
+
+                if (typeof products !== 'undefined' && Array.isArray(products)) {
+                    // 1. 取得今日日期 (將時間設為 00:00:00 以便準確計算天數差)
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const currentYear = today.getFullYear();
+
+                    // --- 新增：根據日期排序 (由近到遠) ---
+                    products.sort((a, b) => {
+                        const getProductDate = (dateStr) => {
+                            const parts = dateStr.split('/');
+                            const month = parseInt(parts[0], 10) - 1;
+                            const day = parseInt(parts[1], 10);
+                            let date = new Date(currentYear, month, day);
+
+                            // 跨年邏輯：如果今天是 12 月，且日期是 1 月，視為明年
+                            if (today.getMonth() === 11 && month === 0) {
+                                date.setFullYear(currentYear + 1);
+                            }
+                            return date;
+                        };
+                        return getProductDate(a.date) - getProductDate(b.date);
+                    });
+                    // -------------------------------------
+
+                    products.forEach(product => {
+                        // 簡單處理價格格式
+                        const displayPrice = product.price.replace('$', 'NT$ ');
+
+                        // --- 日期判斷邏輯 ---
+                        let dateBadgeHtml = '';
+
+                        // 解析產品日期 (格式 MM/dd)
+                        const parts = product.date.split('/');
+                        if (parts.length === 2) {
+                            const month = parseInt(parts[0], 10) - 1; // JavaScript 月份從 0 開始
+                            const day = parseInt(parts[1], 10);
+
+                            // 建立產品日期物件
+                            let productDate = new Date(currentYear, month, day);
+
+                            // 簡單跨年處理：如果今天是 12 月，產品是 1 月，則視為明年
+                            if (today.getMonth() === 11 && month === 0) {
+                                productDate.setFullYear(currentYear + 1);
+                            }
+
+                            // 計算毫秒差異並轉換為天數
+                            const diffTime = productDate - today;
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                            // 判斷邏輯：大於 0 天且小於等於 3 天顯示紅色倒數
+                            if (diffDays > 0 && diffDays <= 3) {
+                                dateBadgeHtml = `
+                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-100">
+                                        <svg class="w-3 h-3 mr-1.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        剩 ${diffDays} 天
+                                    </div>`;
+                            } else if (diffDays === 0) {
+                                // 如果是當天
+                                dateBadgeHtml = `
+                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-100">
+                                        <svg class="w-3 h-3 mr-1.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        今日收單
+                                    </div>`;
+                            } else {
+                                // 一般顯示 (超過 3 天或已過期)
+                                dateBadgeHtml = `
+                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                        <svg class="w-3 h-3 mr-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        ${product.date} 收單
+                                    </div>`;
+                            }
+                        }
+
+                        // 使用 <a> 標籤包裹整個卡片，並加入 href 屬性
+                        const itemHtml = `
+                        <a href="${product.link || '#'}" target="_blank" class="block item-card group sm:grid sm:grid-cols-12 sm:gap-4 p-5 items-center bg-white hover:bg-slate-50/50 cursor-pointer no-underline">
+                            <!-- 名稱區塊 -->
+                            <div class="col-span-6 mb-3 sm:mb-0 flex items-start sm:items-center gap-3">
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-700 group-hover:text-brand-600 transition-colors">
+                                        ${product.name}
+                                    </h3>
+                                </div>
+                            </div>
+
+                            <!-- 價格區塊 -->
+                            <div class="col-span-3 mb-2 sm:mb-0 flex justify-between sm:justify-end sm:pr-4 items-center">
+                                <span class="text-xs text-slate-400 sm:hidden">團購價</span>
+                                <span class="text-lg font-bold text-accent font-mono tracking-tight">${displayPrice}</span>
+                            </div>
+
+                            <!-- 日期區塊 -->
+                            <div class="col-span-3 flex justify-between sm:justify-center items-center">
+                                <span class="text-xs text-slate-400 sm:hidden">截止日</span>
+                                ${dateBadgeHtml}
+                            </div>
+                        </a>
+                    `;
+                        listContainer.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                }
+            });
+        </script>
+    </div>
+
+</body>
+
+</html>
