@@ -2,13 +2,11 @@
 <html lang="zh-Hant-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>阿阮揪團購</title>
-    <!-- 引入 Google Fonts: Noto Sans TC 提供更有質感的繁體中文顯示 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>阿阮揪團購 | 限時好物</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- 引入 Tailwind CSS 快速構建現代化樣式 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -19,238 +17,317 @@
                     },
                     colors: {
                         brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9', // 主色調：清新的天藍
-                            600: '#0284c7',
-                            900: '#0c4a6e',
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            900: '#1e3a8a',
                         },
-                        accent: {
-                            light: '#fdba74',
-                            DEFAULT: '#f97316', // 強調色：質感橘 (用於價格)
+                        action: {
+                            light: '#ffedd5',
+                            DEFAULT: '#f97316',
+                            hover: '#ea580c',
                         }
                     },
                     boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)', // 自定義柔和陰影
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'hover': '0 10px 25px -5px rgba(59, 130, 246, 0.15)',
+                    },
+                    animation: {
+                        'shimmer': 'shimmer 1.5s infinite linear',
+                    },
+                    keyframes: {
+                        shimmer: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(100%)' },
+                        }
                     }
                 }
             }
         }
     </script>
     <style>
-        /* 增加微細的背景噪點質感 */
         body {
             background-color: #f8fafc;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.8) 0px, transparent 50%), 
-                radial-gradient(at 100% 0%, rgba(224, 242, 254, 0.4) 0px, transparent 50%);
+            -webkit-font-smoothing: antialiased;
         }
-        
-        /* 自定義卡片懸浮動畫 */
-        .item-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        /* 隱藏滾動條但保持功能 */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
-        .item-card:hover {
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* 骨架屏動畫背景 */
+        .skeleton-bg {
+            background: #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton-bg::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        .product-card {
+            transition: all 0.2s ease-out;
+            border: 1px solid transparent;
+        }
+        .product-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border-color: #bfdbfe;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15);
+        }
+        .product-card:active {
+            transform: scale(0.99);
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
     </style>
 </head>
-<body class="text-slate-600 font-sans min-h-screen p-4 sm:p-8">
+<body class="text-slate-600 font-sans min-h-screen pb-10">
 
-    <div class="max-w-4xl mx-auto">
-        
-        <!-- 頁首區域 -->
-        <header class="text-center mb-10 mt-4 relative">
-            <div class="inline-block relative">
-                <h1 class="text-3xl sm:text-4xl font-bold text-slate-800 tracking-tight mb-2">
-                    阿阮揪團購
-                </h1>
-                <!-- 裝飾性下底線 -->
-                <div class="h-1 w-1/2 bg-brand-500 mx-auto rounded-full opacity-80"></div>
+    <div class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30">
+                    阮
+                </div>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight">阿阮揪團購</h1>
             </div>
-            <p class="text-slate-400 mt-3 text-sm font-light tracking-wide">
-                精選好物・限時跟團・錯過不再
-            </p>
-        </header>
-
-        <!-- 列表容器 -->
-        <main class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-soft border border-white/50 overflow-hidden">
-            
-            <!-- 表頭 (僅在桌機版顯示) -->
-            <div class="hidden sm:grid grid-cols-12 gap-4 p-5 bg-slate-50/80 border-b border-slate-100 text-sm font-medium text-slate-500 uppercase tracking-wider">
-                <div class="col-span-6 pl-2">商品名稱</div>
-                <div class="col-span-3 text-right pr-4">價格</div>
-                <div class="col-span-3 text-center">收單日期</div>
+            <div class="text-xs font-medium text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-100">
+                嚴選好物
             </div>
-
-            <!-- 列表內容 (動態生成) -->
-            <div id="product-list" class="divide-y divide-slate-100">
-                <!-- JavaScript 將在此處插入內容 -->
-            </div>
-            
-        </main>
-
-        <footer class="text-center mt-12 text-slate-400 text-xs">
-            © 2025 阿阮揪團購. All rights reserved.
-        </footer>
-
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                // ⚠️ 請填入你的 Google Apps Script 網址
-                const API_URL = 'https://script.google.com/macros/s/AKfycbzYCHG1ugr7gzciLeMnc-hLy8PUXF7qPWhJfR1vXBS0wUqrQrJWCWdJdFMdOso8la5p8A/exec';
-
-                const listContainer = document.getElementById('product-list');
-
-                // 顯示載入中
-                listContainer.innerHTML = `
-                        <div class="p-10 text-center text-slate-400">
-                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mb-2"></div>
-                            <p>正在尋找好物...</p>
-                        </div>
-                    `;
-
-                fetch(API_URL)
-                    .then(response => response.json())
-                    .then(data => {
-                        renderProducts(data);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        listContainer.innerHTML = `<div class="p-10 text-center text-red-400">讀取資料失敗，請稍後再試。</div>`;
-                    });
-
-                // --- 🛠️ 核心修改：萬能日期解析函式 ---
-                function parseSmartDate(dateInput) {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const currentYear = today.getFullYear();
-
-                    let targetDate;
-                    let displayStr = "";
-
-                    // 情況 1: 如果是標準時間格式 (例如 Google Sheet 的日期格式)
-                    // 判斷方式：是字串且包含 "-" 或 "T"，或者原本就是 Date 物件
-                    if (dateInput && (typeof dateInput === 'string' && (dateInput.includes('-') || dateInput.includes('T')))) {
-                        targetDate = new Date(dateInput);
-                        // 格式化顯示文字為 "12/30"
-                        const m = (targetDate.getMonth() + 1).toString().padStart(2, '0');
-                        const d = targetDate.getDate().toString().padStart(2, '0');
-                        displayStr = `${m}/${d}`;
-                    }
-                    // 情況 2: 如果是手打的 "12/30" (純文字格式)
-                    else if (typeof dateInput === 'string' && dateInput.includes('/')) {
-                        const parts = dateInput.split('/');
-                        const month = parseInt(parts[0], 10) - 1;
-                        const day = parseInt(parts[1], 10);
-                        targetDate = new Date(currentYear, month, day);
-
-                        // 跨年邏輯：如果今天是12月，商品是1月，視為明年
-                        if (today.getMonth() === 11 && month === 0) {
-                            targetDate.setFullYear(currentYear + 1);
-                        }
-                        displayStr = dateInput; // 維持原本輸入
-                    }
-                    // 情況 3: 資料錯誤或空白
-                    else {
-                        // 給一個很久以後的日期，避免報錯
-                        targetDate = new Date(2999, 0, 1);
-                        displayStr = "無期限";
-                    }
-
-                    return {
-                        obj: targetDate,   // 用來計算倒數與排序
-                        text: displayStr   // 用來顯示在畫面上 (MM/DD)
-                    };
-                }
-                // ----------------------------------------
-
-                function renderProducts(products) {
-                    listContainer.innerHTML = '';
-
-                    if (!Array.isArray(products) || products.length === 0) {
-                        listContainer.innerHTML = `<div class="p-10 text-center text-slate-400">目前沒有團購商品。</div>`;
-                        return;
-                    }
-
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-
-                    // 排序邏輯 (使用新的解析函式)
-                    products.sort((a, b) => {
-                        const dateA = parseSmartDate(a.date).obj;
-                        const dateB = parseSmartDate(b.date).obj;
-                        return dateA - dateB;
-                    });
-
-                    products.forEach(product => {
-                        const priceStr = product.price ? String(product.price).replace('$', 'NT$ ') : 'NT$ --';
-                        const nameStr = product.name || '未命名商品';
-                        const linkStr = product.link || '#';
-
-                        // 使用新的解析函式處理日期
-                        const dateInfo = parseSmartDate(product.date);
-                        const productDate = dateInfo.obj;
-                        const dateDisplay = dateInfo.text;
-
-                        // 計算倒數天數
-                        const diffTime = productDate - today;
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                        // 如果已過期（diffDays < 0），則跳過不顯示
-                        if (diffDays < 0) {
-                            return; // 等同於 continue，跳過此筆商品
-                        }
-
-                        let dateBadgeHtml = '';
-
-                        if (diffDays > 0 && diffDays <= 3) {
-                            dateBadgeHtml = `
-                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-100">
-                                        <svg class="w-3 h-3 mr-1.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        剩 ${diffDays} 天
-                                    </div>`;
-                        } else if (diffDays === 0) {
-                            dateBadgeHtml = `
-                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-100">
-                                        <svg class="w-3 h-3 mr-1.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        今日收單
-                                    </div>`;
-                        } else {
-                            dateBadgeHtml = `
-                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                                        <svg class="w-3 h-3 mr-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        ${dateDisplay} 收單
-                                    </div>`;
-                        }
-
-                        const itemHtml = `
-                                <a href="${linkStr}" target="_blank" class="block item-card group sm:grid sm:grid-cols-12 sm:gap-4 p-5 items-center bg-white hover:bg-slate-50/50 cursor-pointer no-underline">
-                                    <div class="col-span-6 mb-3 sm:mb-0 flex items-start sm:items-center gap-3">
-                                        <div>
-                                            <h3 class="text-lg font-bold text-slate-700 group-hover:text-brand-600 transition-colors">
-                                                ${nameStr}
-                                            </h3>
-                                        </div>
-                                    </div>
-                                    <div class="col-span-3 mb-2 sm:mb-0 flex justify-between sm:justify-end sm:pr-4 items-center">
-                                        <span class="text-xs text-slate-400 sm:hidden">團購價</span>
-                                        <span class="text-lg font-bold text-accent font-mono tracking-tight">${priceStr}</span>
-                                    </div>
-                                    <div class="col-span-3 flex justify-between sm:justify-center items-center">
-                                        <span class="text-xs text-slate-400 sm:hidden">截止日</span>
-                                        ${dateBadgeHtml}
-                                    </div>
-                                </a>
-                            `;
-                        listContainer.insertAdjacentHTML('beforeend', itemHtml);
-                    });
-                }
-            });
-        </script>
+        </div>
     </div>
 
-</body>
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+        
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-slate-800 font-bold text-lg flex items-center gap-2">
+                <span class="inline-block w-2 h-6 bg-action-DEFAULT rounded-full"></span>
+                目前開團中
+            </h2>
+            <span id="item-count" class="text-xs text-slate-400 font-medium">載入中...</span>
+        </div>
 
+        <div id="product-list" class="space-y-4">
+            </div>
+
+    </div>
+
+    <footer class="text-center py-8 text-slate-400 text-xs">
+        <p class="mb-2">© 2025 阿阮揪團購</p>
+        <p class="text-slate-300 transform scale-90">Designed for Conversion</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Google Script API URL
+            const API_URL = 'https://script.google.com/macros/s/AKfycbzYCHG1ugr7gzciLeMnc-hLy8PUXF7qPWhJfR1vXBS0wUqrQrJWCWdJdFMdOso8la5p8A/exec';
+
+            const productList = document.getElementById('product-list');
+            const itemCount = document.getElementById('item-count');
+
+            // 1. 初始化顯示 Skeleton (骨架屏)
+            renderSkeleton();
+
+            // 2. 獲取資料
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    // 模擬微小延遲讓骨架屏轉換更順暢
+                    setTimeout(() => renderProducts(data), 500);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    productList.innerHTML = `
+                        <div class="bg-red-50 border border-red-100 rounded-xl p-8 text-center">
+                            <p class="text-red-500 font-medium mb-2">無法取得團購資料</p>
+                            <button onclick="location.reload()" class="text-xs text-white bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition">點擊重新整理</button>
+                        </div>
+                    `;
+                    itemCount.textContent = "";
+                });
+
+            // 日期解析輔助函式
+            function parseSmartDate(dateInput) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const currentYear = today.getFullYear();
+                let targetDate;
+                let displayStr = "";
+
+                try {
+                    if (dateInput && typeof dateInput === 'string') {
+                        if (dateInput.includes('-') || dateInput.includes('T')) {
+                            targetDate = new Date(dateInput);
+                            const m = (targetDate.getMonth() + 1).toString().padStart(2, '0');
+                            const d = targetDate.getDate().toString().padStart(2, '0');
+                            displayStr = `${m}/${d} 截止`;
+                        } else if (dateInput.includes('/')) {
+                            const parts = dateInput.split('/');
+                            const month = parseInt(parts[0], 10) - 1;
+                            const day = parseInt(parts[1], 10);
+                            targetDate = new Date(currentYear, month, day);
+                            if (today.getMonth() === 11 && month === 0) targetDate.setFullYear(currentYear + 1);
+                            displayStr = `${parts[0]}/${parts[1]} 截止`;
+                        }
+                    }
+
+                    if (!targetDate || isNaN(targetDate.getTime())) {
+                        targetDate = new Date(2999, 0, 1);
+                        displayStr = "長期供應";
+                    }
+                } catch (e) {
+                    targetDate = new Date(2999, 0, 1);
+                    displayStr = "長期供應";
+                }
+
+                return { obj: targetDate, text: displayStr };
+            }
+
+            // 渲染骨架屏 (Skeleton) - 配合小圖版型
+            function renderSkeleton() {
+                let html = '';
+                for (let i = 0; i < 3; i++) {
+                    html += `
+                        <div class="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex gap-4">
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl skeleton-bg flex-shrink-0"></div>
+                            <div class="flex-1 flex flex-col justify-between py-2">
+                                <div>
+                                    <div class="h-4 w-16 skeleton-bg rounded mb-3"></div>
+                                    <div class="h-5 w-full skeleton-bg rounded mb-2"></div>
+                                    <div class="h-5 w-2/3 skeleton-bg rounded"></div>
+                                </div>
+                                <div class="flex justify-between items-end">
+                                    <div class="h-8 w-24 skeleton-bg rounded"></div>
+                                    <div class="h-9 w-20 skeleton-bg rounded-lg"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                productList.innerHTML = html;
+            }
+
+            // 渲染正式列表 (針對 64x64 小圖優化)
+            function renderProducts(products) {
+                productList.innerHTML = '';
+
+                if (!Array.isArray(products) || products.length === 0) {
+                    productList.innerHTML = `<div class="p-10 text-center text-slate-400 bg-white rounded-2xl border border-slate-100">目前沒有團購商品，請稍後再來！</div>`;
+                    itemCount.textContent = "0 項商品";
+                    return;
+                }
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const activeProducts = products
+                    .filter(p => {
+                        const dateInfo = parseSmartDate(p.date);
+                        const diffDays = Math.ceil((dateInfo.obj - today) / (1000 * 60 * 60 * 24));
+                        return diffDays >= 0;
+                    })
+                    .sort((a, b) => parseSmartDate(a.date).obj - parseSmartDate(b.date).obj);
+
+                itemCount.textContent = `${activeProducts.length} 項商品`;
+
+                if (activeProducts.length === 0) {
+                    productList.innerHTML = `<div class="p-10 text-center text-slate-400 bg-white rounded-2xl border border-slate-100">目前所有團購皆已結束。</div>`;
+                    return;
+                }
+
+                activeProducts.forEach((product) => {
+                    const priceStr = product.price ? String(product.price).replace('$', '') : '--';
+                    const nameStr = product.name || '精選好物';
+                    const linkStr = product.link || '#';
+                    const imageStr = product.image || '';
+                    const dateInfo = parseSmartDate(product.date);
+                    const diffTime = dateInfo.obj - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    // 急迫性標籤邏輯
+                    let badgeClass = "bg-slate-100 text-slate-600";
+                    let badgeIcon = "⏰";
+                    let badgeText = dateInfo.text;
+
+                    if (diffDays === 0) {
+                        badgeClass = "bg-red-50 text-red-600 border border-red-100 animate-pulse";
+                        badgeIcon = "🔥";
+                        badgeText = "最後一天";
+                    } else if (diffDays <= 3) {
+                        badgeClass = "bg-orange-50 text-orange-600 border border-orange-100";
+                        badgeIcon = "⏳";
+                        badgeText = `剩 ${diffDays} 天`;
+                    }
+
+                    // 圖片處理：不拉伸，置中，保持原比例 (object-contain)
+                    const imgHtml = imageStr
+                        ? `<img src="${imageStr}" alt="${nameStr}" class="max-w-full max-h-full w-auto h-auto object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300" onerror="this.parentNode.innerHTML='<div class=\\'text-2xl\\'>🛍️</div>'">`
+                        : `<div class="text-2xl">🛍️</div>`;
+
+                    const rowHtml = `
+                        <a href="${linkStr}" target="_blank" class="product-card group block bg-white rounded-2xl p-3 shadow-soft hover:shadow-hover relative overflow-hidden border border-slate-50">
+                            <div class="flex gap-4">
+                                <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl flex-shrink-0 bg-slate-50 border border-slate-100 flex items-center justify-center p-2 relative">
+                                    ${imgHtml}
+                                    ${diffDays === 0 ? '<div class="absolute bottom-0 left-0 w-full bg-red-600/90 text-white text-[9px] text-center py-0.5 font-bold">即將截單</div>' : ''}
+                                </div>
+                                
+                                <div class="flex-1 flex flex-col justify-between min-w-0 py-1">
+                                    <div>
+                                        <div class="flex flex-wrap gap-2 mb-1.5">
+                                            <div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${badgeClass}">
+                                                <span class="mr-1">${badgeIcon}</span> ${badgeText}
+                                            </div>
+                                        </div>
+                                        <h3 class="text-sm sm:text-base font-bold text-slate-800 line-clamp-2 leading-relaxed group-hover:text-brand-600 transition-colors">
+                                            ${nameStr}
+                                        </h3>
+                                    </div>
+                                    
+                                    <div class="flex items-end justify-between mt-2">
+                                        <div class="flex flex-col">
+                                            <span class="text-[10px] text-slate-400">團購價</span>
+                                            <div class="text-lg sm:text-xl font-bold text-action-DEFAULT font-sans leading-none">
+                                                <span class="text-xs font-medium mr-0.5">$</span>${priceStr}
+                                            </div>
+                                        </div>
+                                        
+                                        <button class="bg-brand-50 text-brand-600 text-xs font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg group-hover:bg-brand-600 group-hover:text-white transition-all flex items-center shadow-sm">
+                                            去下單
+                                            <svg class="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    productList.insertAdjacentHTML('beforeend', rowHtml);
+                });
+            }
+        });
+    </script>
+</body>
 </html>
