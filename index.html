@@ -194,7 +194,7 @@
 
     <script>
         // API 設定
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz2RxohsrfeBJuwJH-wXKVreblyhV5BNKZB0bd8Kc8T-QLCY8pbnptyZouedY5ASKrRYg/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzKnBy03ti6FSefXuhsegIYDhg5nspB6s3HXLLRBsQNrP6gYUS20prOoigur_rvSntrhQ/exec';
 
         // 全域變數儲存所有資料 (包含商品和訂單)
         let globalData = { products: [], orders: [] };
@@ -466,6 +466,9 @@
                     <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <div>
                             <div class="font-bold text-slate-700 text-sm">${order.product_name}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">規格: ${order.variant_name}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">數量: ${order.quantity}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">售價: ${order.unit_price}</div>
                             <div class="text-xs text-slate-400 mt-0.5">狀態: ${order.status || '未到貨'}</div>
                         </div>
                         <div class="font-bold text-slate-800">$${price}</div>
