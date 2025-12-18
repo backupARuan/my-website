@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>阿阮揪團購 | 限時好物</title>
+    <title>阿阮揪團購 | 限時好物與訂單查詢</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -100,11 +100,27 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
+        /* Modal 動畫 */
+        .modal-enter { 
+            opacity: 0; 
+            transform: scale(0.95); 
+        }
+        .modal-enter-active { 
+            opacity: 1; 
+            transform: scale(1); 
+            transition: all 0.2s ease-out; 
+        }
+        .modal-leave-active { 
+            opacity: 0; 
+            transform: scale(0.95); 
+            transition: all 0.2s ease-in; 
+        }
     </style>
 </head>
 <body class="text-slate-600 font-sans min-h-screen pb-10">
 
-    <div class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+    <div class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 shadow-sm">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30">
@@ -112,8 +128,14 @@
                 </div>
                 <h1 class="text-xl font-bold text-slate-800 tracking-tight">阿阮揪團購</h1>
             </div>
-            <div class="text-xs font-medium text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-100">
-                嚴選好物
+            
+            <div class="flex items-center gap-2">
+                <button onclick="openOrderModal()" class="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold transition-colors">
+                    🔍 <span class="hidden sm:inline">查詢訂單</span>
+                </button>
+                <div class="hidden sm:block text-xs font-medium text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-100">
+                    嚴選好物
+                </div>
             </div>
         </div>
     </div>
@@ -128,8 +150,7 @@
             <span id="item-count" class="text-xs text-slate-400 font-medium">載入中...</span>
         </div>
 
-        <div id="product-list" class="space-y-4">
-            </div>
+        <div id="product-list" class="space-y-4"></div>
 
     </div>
 
@@ -138,23 +159,70 @@
         <p class="text-slate-300 transform scale-90">Designed for Conversion</p>
     </footer>
 
+    <div id="order-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeOrderModal()"></div>
+        
+        <div class="relative top-20 sm:top-24 mx-auto w-[90%] sm:w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden modal-enter">
+            <div class="bg-brand-600 p-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-lg">我的待取貨清單</h3>
+                <button onclick="closeOrderModal()" class="text-white/80 hover:text-white text-xl">&times;</button>
+            </div>
+            
+            <div class="p-6">
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">請輸入您的訂購名稱</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="customer-name-input" placeholder="例如：王小明" 
+                            class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <button onclick="searchOrder()" class="bg-brand-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-brand-700 transition">查詢</button>
+                    </div>
+                </div>
+
+                <div id="order-result" class="space-y-3 max-h-[50vh] overflow-y-auto">
+                    <div class="text-center py-8 text-slate-400 text-sm">
+                        請輸入名字查詢<br>尚未領取的商品
+                    </div>
+                </div>
+            </div>
+            
+            <div id="order-footer" class="bg-slate-50 p-4 border-t border-slate-100 flex justify-between items-center hidden">
+                <span class="text-slate-500 text-xs">尚需支付/核對</span>
+                <span class="text-xl font-bold text-action-DEFAULT" id="total-amount">$0</span>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // API 設定
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz2RxohsrfeBJuwJH-wXKVreblyhV5BNKZB0bd8Kc8T-QLCY8pbnptyZouedY5ASKrRYg/exec';
+
+        // 全域變數儲存所有資料 (包含商品和訂單)
+        let globalData = { products: [], orders: [] };
+
+        // Modal 元素參照 (延遲初始化)
+        let modal, modalBody;
+
         document.addEventListener('DOMContentLoaded', function () {
-            // Google Script API URL
-            const API_URL = 'https://script.google.com/macros/s/AKfycbzYCHG1ugr7gzciLeMnc-hLy8PUXF7qPWhJfR1vXBS0wUqrQrJWCWdJdFMdOso8la5p8A/exec';
+            // 初始化 Modal 元素參照
+            modal = document.getElementById('order-modal');
+            modalBody = modal.querySelector('.modal-enter');
 
             const productList = document.getElementById('product-list');
             const itemCount = document.getElementById('item-count');
 
-            // 1. 初始化顯示 Skeleton (骨架屏)
+            // 1. 初始化顯示 Skeleton
             renderSkeleton();
 
             // 2. 獲取資料
             fetch(API_URL)
                 .then(response => response.json())
                 .then(data => {
+                    // 儲存完整資料到全域變數供訂單查詢使用
+                    globalData = data;
+
+                    const products = data.products || [];
                     // 模擬微小延遲讓骨架屏轉換更順暢
-                    setTimeout(() => renderProducts(data), 500);
+                    setTimeout(() => renderProducts(products), 500);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -204,7 +272,7 @@
                 return { obj: targetDate, text: displayStr };
             }
 
-            // 渲染骨架屏 (Skeleton) - 配合小圖版型
+            // 渲染骨架屏 (Skeleton)
             function renderSkeleton() {
                 let html = '';
                 for (let i = 0; i < 3; i++) {
@@ -228,12 +296,12 @@
                 productList.innerHTML = html;
             }
 
-            // 渲染正式列表 (針對 64x64 小圖優化)
+            // 渲染商品列表
             function renderProducts(products) {
                 productList.innerHTML = '';
 
                 if (!Array.isArray(products) || products.length === 0) {
-                    productList.innerHTML = `<div class="p-10 text-center text-slate-400 bg-white rounded-2xl border border-slate-100">目前沒有團購商品，請稍後再來！</div>`;
+                    productList.innerHTML = `<div class="p-10 text-center text-slate-400 bg-white rounded-2xl border border-slate-100">目前沒有團購商品,請稍後再來!</div>`;
                     itemCount.textContent = "0 項商品";
                     return;
                 }
@@ -280,7 +348,7 @@
                         badgeText = `剩 ${diffDays} 天`;
                     }
 
-                    // 圖片處理：不拉伸，置中，保持原比例 (object-contain)
+                    // 圖片處理：不拉伸，置中，保持原比例
                     const imgHtml = imageStr
                         ? `<img src="${imageStr}" alt="${nameStr}" class="max-w-full max-h-full w-auto h-auto object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300" onerror="this.parentNode.innerHTML='<div class=\\'text-2xl\\'>🛍️</div>'">`
                         : `<div class="text-2xl">🛍️</div>`;
@@ -328,6 +396,87 @@
                 });
             }
         });
+
+        // === 訂單查詢功能 ===
+        function openOrderModal() {
+            if (!modal || !modalBody) return;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalBody.style.opacity = '1';
+                // 這裡的 transform 設定是為了配合 CSS transition 
+                modalBody.style.transform = 'scale(1)';
+            }, 10);
+            document.getElementById('customer-name-input').focus();
+        }
+
+        function closeOrderModal() {
+            if (!modal || !modalBody) return;
+
+            modalBody.style.opacity = '0';
+            modalBody.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function searchOrder() {
+            const name = document.getElementById('customer-name-input').value.trim();
+            const resultDiv = document.getElementById('order-result');
+            const footerDiv = document.getElementById('order-footer');
+            const totalSpan = document.getElementById('total-amount');
+
+            if (!name) {
+                alert('請輸入名字');
+                return;
+            }
+
+            // 確保有資料
+            if (!globalData.orders) {
+                alert("目前無法讀取訂單資料，請稍後再試");
+                return;
+            }
+
+            // 搜尋邏輯：名字包含輸入關鍵字 且 狀態不是 "已取貨"
+            const myOrders = globalData.orders.filter(order => {
+                const orderName = String(order.customer_name || '');
+                const orderStatus = String(order.status || '');
+                return orderName.includes(name) && orderStatus !== '已取貨';
+            });
+
+            if (myOrders.length === 0) {
+                resultDiv.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-2">🎉</div>
+                        <p class="text-slate-600 font-bold">沒有未取貨的訂單</p>
+                        <p class="text-xs text-slate-400 mt-1">或是名字輸入有誤？</p>
+                    </div>
+                `;
+                footerDiv.classList.add('hidden');
+                return;
+            }
+
+            // 顯示列表
+            let html = '';
+            let total = 0;
+            myOrders.forEach(order => {
+                const price = parseInt(order.total_price) || 0;
+                total += price;
+                html += `
+                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div>
+                            <div class="font-bold text-slate-700 text-sm">${order.product_name}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">狀態: ${order.status || '未到貨'}</div>
+                        </div>
+                        <div class="font-bold text-slate-800">$${price}</div>
+                    </div>
+                `;
+            });
+
+            resultDiv.innerHTML = html;
+            totalSpan.textContent = '$' + total;
+            footerDiv.classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
