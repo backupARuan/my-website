@@ -323,12 +323,47 @@
                     productList.innerHTML = `<div class="p-10 text-center text-slate-400 bg-white rounded-2xl border border-slate-100">目前所有團購皆已結束。</div>`;
                     return;
                 }
+                // Google Drive 圖片連結轉換函式
+                function convertGoogleDriveUrl(url) {
+                    if (!url) return '';
+
+                    let fileId = null;
+
+                    // 匹配 drive.google.com/uc?export=view&id=FILE_ID 格式
+                    const match1 = url.match(/drive\.google\.com\/uc\?export=view&id=([a-zA-Z0-9_-]+)/);
+                    if (match1) fileId = match1[1];
+
+                    // 匹配 drive.google.com/file/d/FILE_ID/view 格式
+                    if (!fileId) {
+                        const match2 = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+                        if (match2) fileId = match2[1];
+                    }
+
+                    // 匹配 lh3.google.com/u/0/d/FILE_ID 格式
+                    if (!fileId) {
+                        const match3 = url.match(/lh3\.google\.com\/u\/\d+\/d\/([a-zA-Z0-9_-]+)/);
+                        if (match3) fileId = match3[1];
+                    }
+
+                    // 匹配 lh3.googleusercontent.com/d/FILE_ID 格式
+                    if (!fileId) {
+                        const match4 = url.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/);
+                        if (match4) fileId = match4[1];
+                    }
+
+                    // 如果成功取得 fileId，使用 Google Drive 縮圖 API
+                    if (fileId) {
+                        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+                    }
+
+                    return url;
+                }
 
                 activeProducts.forEach((product) => {
                     const priceStr = product.price ? String(product.price).replace('$', '') : '--';
                     const nameStr = product.name || '精選好物';
                     const linkStr = product.link || '#';
-                    const imageStr = product.image || '';
+                    const imageStr = convertGoogleDriveUrl(product.image || '');  // 加入轉換函式
                     const dateInfo = parseSmartDate(product.date);
                     const diffTime = dateInfo.obj - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
